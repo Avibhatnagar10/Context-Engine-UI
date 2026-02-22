@@ -1,15 +1,13 @@
 @import "tailwindcss";
 
+/* ================= ROOT VARIABLES ================= */
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Mobile safe viewport height */
+  --vh: 100vh;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,8 +17,111 @@
   }
 }
 
+/* Fix iOS 100vh issue */
+@supports (height: 100dvh) {
+  :root {
+    --vh: 100dvh;
+  }
+}
+
+/* ================= THEME TOKENS ================= */
+
+
+
+/* ================= BASE STYLES ================= */
+
+html,
+body {
+  height: 100%;
+  min-height: var(--vh);
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  overflow-x: hidden; /* Prevent mobile horizontal scroll bug */
+}
+
+/* Improve tap experience */
+button {
+  touch-action: manipulation;
+}
+
+/* Prevent accidental zoom on input focus (iOS) */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+/* ================= MOBILE SAFE AREA SUPPORT ================= */
+
+/* Support iPhone notches */
+.safe-area {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ================= CUSTOM SCROLLBAR ================= */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ================= ANIMATIONS ================= */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.25s ease-out forwards;
+}
+
+/* Disable heavy animations on low-power mobile */
+@media (max-width: 640px) {
+  .animate-fadeIn,
+  .animate-scaleIn {
+    animation-duration: 0.18s;
+  }
+}
+
+/* ================= RESPONSIVE TYPOGRAPHY ================= */
+
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 769px) {
+  body {
+    font-size: 15px;
+  }
 }
