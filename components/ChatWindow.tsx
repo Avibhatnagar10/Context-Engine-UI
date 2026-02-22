@@ -38,7 +38,7 @@ export default function ChatWindow() {
             "🔎 Embedding query...",
             "📚 Searching vector index...",
             "🎯 Re-ranking chunks...",
-            "🧠 Generating response..."
+            "Generating response..."
         ];
         for (const stage of stages) {
             setStatus(stage);
@@ -88,13 +88,13 @@ export default function ChatWindow() {
                 await api.post("/ingest", { id: crypto.randomUUID(), text: userMsg.content });
                 setMessages((prev) => [...prev, {
                     role: "assistant",
-                    content: "✅ Knowledge ingested successfully.",
+                    content: "Knowledge ingested successfully.",
                 }]);
             }
         } catch {
             setMessages((prev) => [...prev, {
                 role: "assistant",
-                content: "⚠️ Connection error. Please ensure the backend is running.",
+                content: "⚠️ Connection error.",
             }]);
         } finally {
             setStatus("");
