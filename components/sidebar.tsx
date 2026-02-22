@@ -47,9 +47,13 @@ export default function Sidebar({
     try {
       setLoadingDocs(true);
       const res = await api.get("/documents");
+  
+      console.log("DOCUMENT RESPONSE:", res.data);
+      console.log("IS ARRAY:", Array.isArray(res.data));
+  
       setDocuments(res.data || []);
-    } catch {
-      console.error("Failed to fetch documents");
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoadingDocs(false);
     }
@@ -151,7 +155,7 @@ export default function Sidebar({
                 </button>
               </div>
             )}
-
+            
             <div className="space-y-1">
               {documents.map((doc, i) => (
                 <div
