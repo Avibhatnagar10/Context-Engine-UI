@@ -120,7 +120,7 @@ export default function ChatWindow() {
                                 v1.0 Live Local Intelligence
                             </div>
 
-                            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-b from-white to-white/40 bg-clip-text text-transparent">
+                            <h1 className="text-5xl md:text-5xl font-bold tracking-tight leading-tight px-1 mb-6 bg-gradient-to-b from-white to-white/40 bg-clip-text text-transparent">
                                 ContextEngine
                             </h1>
 
@@ -181,9 +181,8 @@ export default function ChatWindow() {
 
                             <button
                                 onClick={() => setMode("rag")}
-                                className={`relative z-10 w-[80px] py-1.5 text-[11px] font-bold tracking-wide ${
-                                    mode === "rag" ? "text-white" : "text-gray-500"
-                                }`}
+                                className={`relative z-10 w-[80px] py-1.5 text-[11px] font-bold tracking-wide ${mode === "rag" ? "text-white" : "text-gray-500"
+                                    }`}
                             >
                                 <div className="flex items-center justify-center gap-1.5 uppercase">
                                     <Sparkles size={12} /> RAG
@@ -192,9 +191,8 @@ export default function ChatWindow() {
 
                             <button
                                 onClick={() => setMode("ingest")}
-                                className={`relative z-10 w-[95px] py-1.5 text-[11px] font-bold tracking-wide ${
-                                    mode === "ingest" ? "text-white" : "text-gray-500"
-                                }`}
+                                className={`relative z-10 w-[95px] py-1.5 text-[11px] font-bold tracking-wide ${mode === "ingest" ? "text-white" : "text-gray-500"
+                                    }`}
                             >
                                 <div className="flex items-center justify-center gap-1.5 uppercase">
                                     <Database size={12} /> Ingest
@@ -237,11 +235,10 @@ export default function ChatWindow() {
                         <button
                             onClick={handleSend}
                             disabled={!input.trim() || loading}
-                            className={`p-2.5 rounded-full ${
-                                input.trim() && !loading
+                            className={`p-2.5 rounded-full ${input.trim() && !loading
                                     ? "bg-white text-black"
                                     : "bg-white/5 text-gray-600 opacity-50"
-                            }`}
+                                }`}
                         >
                             {loading ? (
                                 <Loader2 size={18} className="animate-spin" />
