@@ -120,12 +120,14 @@ export default function ChatWindow() {
                                 v1.0 Live Local Intelligence
                             </div>
 
-                            <h1 className="text-5xl md:text-5xl font-bold tracking-tight leading-tight px-1 mb-6 bg-gradient-to-b from-white to-white/40 bg-clip-text text-transparent">
-                                ContextEngine
+                            <h1 className="text-[clamp(2.5rem,6vw,3rem)] md:text-5xl font-bold tracking-tight leading-tight mb-6">
+                                <span className="bg-gradient-to-b from-white to-white/40 bg-clip-text text-transparent inline-block px-1">
+                                    ContextEngine
+                                </span>
                             </h1>
 
                             <p className="text-lg text-gray-400 max-w-md mx-auto leading-relaxed">
-                                Seamlessly chat with your local data using private, grounded AI.
+                            Intelligence built on your data. Powered locally.
                             </p>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-12">
@@ -236,8 +238,8 @@ export default function ChatWindow() {
                             onClick={handleSend}
                             disabled={!input.trim() || loading}
                             className={`p-2.5 rounded-full ${input.trim() && !loading
-                                    ? "bg-white text-black"
-                                    : "bg-white/5 text-gray-600 opacity-50"
+                                ? "bg-white text-black"
+                                : "bg-white/5 text-gray-600 opacity-50"
                                 }`}
                         >
                             {loading ? (
