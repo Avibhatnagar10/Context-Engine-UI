@@ -116,7 +116,7 @@ export default function ChatWindow() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="max-w-2xl w-full mx-auto px-6 pt-24 pb-12 text-center"
+                            className="max-w-2xl w-full mx-auto px-6 pt-16 sm:pt-24 pb-12 text-center"
                         >
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium mb-6">
                                 <Sparkles size={14} />
