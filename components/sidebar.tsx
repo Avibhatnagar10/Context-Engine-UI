@@ -42,15 +42,31 @@ export default function Sidebar({
   const [embeddingModel, setEmbeddingModel] = useState(
     "nomic-embed-text:latest"
   );
+  const [chromaStatus, setChromaStatus] = useState<"active" | "offline">("offline");
 
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const res = await api.get("/health/chroma");
+        setChromaStatus(res.data.status);
+      } catch {
+        setChromaStatus("offline");
+      }
+    };
+
+    checkHealth();
+    const interval = setInterval(checkHealth, 5000); // auto refresh every 5s
+
+    return () => clearInterval(interval);
+  }, []);
   const fetchDocuments = async () => {
     try {
       setLoadingDocs(true);
       const res = await api.get("/documents");
-  
+
       console.log("DOCUMENT RESPONSE:", res.data);
       console.log("IS ARRAY:", Array.isArray(res.data));
-  
+
       setDocuments(res.data || []);
     } catch (err) {
       console.error(err);
@@ -155,7 +171,7 @@ export default function Sidebar({
                 </button>
               </div>
             )}
-            
+
             <div className="space-y-1">
               {documents.map((doc, i) => (
                 <div
@@ -193,32 +209,59 @@ export default function Sidebar({
           </div>
 
           {/* Footer */}
-          <div className="mt-auto pt-6 border-t border-white/5 space-y-2">
+          <div className="mt-auto pt-6 border-t border-white/10 space-y-2">
+            {/* Database Status Card */}
             <div
               className={clsx(
-                "flex items-center gap-3 px-2 py-2 text-sm text-gray-500",
-                isCollapsed && "justify-center"
+                "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300",
+                "bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.06]",
+                isCollapsed ? "justify-center" : "mx-2"
               )}
             >
-              <HardDrive size={18} />
+              <div className="relative">
+                <HardDrive
+                  size={18}
+                  className={chromaStatus === "active" ? "text-green-400" : "text-gray-500"}
+                />
+                {/* Status indicator dot */}
+                <span className={clsx(
+                  "absolute -top-1 -right-1 w-2 h-2 rounded-full border-2 border-gray-900",
+                  chromaStatus === "active" ? "bg-green-500 animate-pulse" : "bg-red-500"
+                )} />
+              </div>
+
               {!isCollapsed && (
-                <span>
-                  ChromaDB:{" "}
-                  <span className="text-green-500">
-                    Active
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">
+                    Vector Store
                   </span>
-                </span>
+                  <span className="text-sm font-medium text-gray-200">
+                    ChromaDB
+                    <span className={clsx(
+                      "ml-2 text-[11px] px-1.5 py-0.5 rounded-md font-semibold",
+                      chromaStatus === "active"
+                        ? "bg-green-500/10 text-green-400 ring-1 ring-green-500/20"
+                        : "bg-red-500/10 text-red-400 ring-1 ring-red-500/20"
+                    )}>
+                      {chromaStatus === "active" ? "ONLINE" : "OFFLINE"}
+                    </span>
+                  </span>
+                </div>
               )}
             </div>
 
+            {/* Settings Button */}
             <button
               onClick={() => setShowSettings(true)}
               className={clsx(
-                "flex items-center gap-3 px-2 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition",
-                isCollapsed && "justify-center"
+                "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all duration-200 group",
+                isCollapsed ? "justify-center" : "px-4"
               )}
             >
-              <Settings size={18} />
+              <Settings
+                size={18}
+                className="group-hover:rotate-45 transition-transform duration-300"
+              />
               {!isCollapsed && <span>Settings</span>}
             </button>
           </div>
@@ -229,7 +272,7 @@ export default function Sidebar({
       {showSettings && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
           <div className="bg-[#111113] w-full max-w-[460px] rounded-2xl p-6 shadow-2xl border border-white/10 relative">
-            
+
             <button
               onClick={() => setShowSettings(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-white"
@@ -328,11 +371,10 @@ function Dropdown({
                 onChange(option.value);
                 setOpen(false);
               }}
-              className={`w-full text-left px-4 py-3 text-sm hover:bg-[#222427] transition ${
-                value === option.value
-                  ? "bg-[#1f2124] text-blue-400"
-                  : "text-gray-300"
-              }`}
+              className={`w-full text-left px-4 py-3 text-sm hover:bg-[#222427] transition ${value === option.value
+                ? "bg-[#1f2124] text-blue-400"
+                : "text-gray-300"
+                }`}
             >
               {option.label}
             </button>
