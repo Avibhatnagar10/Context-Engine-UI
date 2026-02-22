@@ -106,7 +106,10 @@ export default function ChatWindow() {
         <div className="flex flex-col flex-1 min-h-0 bg-[#0a0a0a] text-[#ececec]">
 
             {/* Main Chat Content */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide ">
+            <div
+                className={`flex-1 min-h-0 ${messages.length > 0 ? "overflow-y-auto" : "overflow-hidden"
+                    } scrollbar-hide`}
+            >
                 <AnimatePresence mode="wait">
                     {messages.length === 0 ? (
                         <motion.div
@@ -127,7 +130,7 @@ export default function ChatWindow() {
                             </h1>
 
                             <p className="text-lg text-gray-400 max-w-md mx-auto leading-relaxed">
-                            Intelligence built on your data. Powered locally.
+                                Intelligence built on your data. Powered locally.
                             </p>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-12">

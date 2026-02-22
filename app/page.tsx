@@ -42,7 +42,7 @@ export default function Layout() {
         {/* Mobile Top Bar */}
         <div className="lg:hidden flex items-center p-3 border-b border-white/5">
           <button onClick={() => setIsMobileOpen(true)}>
-            <Menu size={12} />
+            <Menu size={18} />
           </button>
         </div>
 
