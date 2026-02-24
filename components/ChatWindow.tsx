@@ -4,20 +4,39 @@ import { useState, useRef, useEffect } from "react";
 import {
     Paperclip,
     SendHorizontal,
-    Loader2,
     ShieldCheck,
     Sparkles,
-    Database
+    Database,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import MessageBubble from "./MessageBubble";
 import api from "@/lib/api";
 
 type Message = {
+    id: string;
     role: "user" | "assistant";
     content: string;
     sources?: string[];
 };
+
+function TypingIndicator() {
+    return (
+        <div className="flex gap-1 px-2 py-1">
+            {[0, 1, 2].map((i) => (
+                <motion.span
+                    key={i}
+                    className="w-1.5 h-1.5 bg-gray-400 rounded-full"
+                    animate={{ opacity: [0.3, 1, 0.3] }}
+                    transition={{
+                        duration: 1.2,
+                        repeat: Infinity,
+                        delay: i * 0.2,
+                    }}
+                />
+            ))}
+        </div>
+    );
+}
 
 export default function ChatWindow() {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -28,136 +47,167 @@ export default function ChatWindow() {
 
     const bottomRef = useRef<HTMLDivElement>(null);
 
+    // Smart Auto Scroll
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        const el = bottomRef.current;
+        if (!el) return;
+
+        const container = el.closest(".scroll-container");
+        if (!container) return;
+
+        const isNearBottom =
+            container.scrollHeight - container.scrollTop - container.clientHeight < 120;
+
+        if (isNearBottom) {
+            el.scrollIntoView({ behavior: "smooth" });
+        }
     }, [messages]);
 
-    const simulateRagStages = async () => {
-        const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-        const stages = [
-            "🔎 Embedding query...",
-            "📚 Searching vector index...",
-            "🎯 Re-ranking chunks...",
-            "Generating response..."
-        ];
-        for (const stage of stages) {
-            setStatus(stage);
-            await delay(600);
-        }
-    };
-
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
         const files = e.target.files;
         if (!files) return;
 
         for (const file of Array.from(files)) {
             const formData = new FormData();
             formData.append("file", file);
+
             try {
-                setStatus(`📄 Processing ${file.name}...`);
+                setStatus(`Processing ${file.name}...`);
                 await api.post("/upload", formData, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
             } catch {
-                console.error("Upload failed");
+                setStatus("Upload failed.");
             }
         }
-        setStatus("📚 Knowledge Base Updated");
+
+        setStatus("Knowledge base updated.");
         setTimeout(() => setStatus(""), 2000);
     };
 
     const handleSend = async () => {
         if (!input.trim() || loading) return;
 
-        const userMsg: Message = { role: "user", content: input };
-        setMessages((prev) => [...prev, userMsg]);
+        const userMessage: Message = {
+            id: crypto.randomUUID(),
+            role: "user",
+            content: input,
+        };
+
+        const assistantPlaceholder: Message = {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: "",
+        };
+
+        setMessages((prev) => [...prev, userMessage, assistantPlaceholder]);
         setInput("");
         setLoading(true);
 
         try {
             if (mode === "rag") {
-                await simulateRagStages();
-                const response = await api.get("/rag", { params: { q: userMsg.content } });
-                setMessages((prev) => [...prev, {
-                    role: "assistant",
-                    content: response.data.answer,
-                    sources: response.data.sources || [],
-                }]);
+                setStatus("Generating response...");
+
+                const response = await api.get("/rag", {
+                    params: { q: userMessage.content },
+                });
+
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantPlaceholder.id
+                            ? {
+                                  ...m,
+                                  content: response.data.answer,
+                                  sources: response.data.sources || [],
+                              }
+                            : m
+                    )
+                );
             } else {
-                setStatus("📥 Ingesting data...");
-                await api.post("/ingest", { id: crypto.randomUUID(), text: userMsg.content });
-                setMessages((prev) => [...prev, {
-                    role: "assistant",
-                    content: "Knowledge ingested successfully.",
-                }]);
+                setStatus("Ingesting data...");
+
+                await api.post("/ingest", {
+                    id: crypto.randomUUID(),
+                    text: userMessage.content,
+                });
+
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantPlaceholder.id
+                            ? {
+                                  ...m,
+                                  content: "Knowledge ingested successfully.",
+                              }
+                            : m
+                    )
+                );
             }
         } catch {
-            setMessages((prev) => [...prev, {
-                role: "assistant",
-                content: "⚠️ Connection error.",
-            }]);
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === assistantPlaceholder.id
+                        ? { ...m, content: "Connection error." }
+                        : m
+                )
+            );
         } finally {
-            setStatus("");
             setLoading(false);
+            setStatus("");
         }
     };
 
     return (
-        <div className="flex flex-col flex-1 min-h-0 bg-[#0a0a0a] text-[#ececec]">
+        <div className="flex flex-col flex-1 min-h-0 bg-[#0b0b0c] text-[#e8e8ea] relative">
 
-            {/* Main Chat Content */}
+            {/* Subtle Top Depth */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_60%)] pointer-events-none" />
+
+            {/* Chat Area */}
             <div
-                className={`flex-1 min-h-0 ${messages.length > 0 ? "overflow-y-auto" : "overflow-hidden"
-                    } scrollbar-hide`}
+                className={`scroll-container flex-1 min-h-0 ${
+                    messages.length > 0
+                        ? "overflow-y-auto"
+                        : "overflow-hidden"
+                }`}
             >
-                <AnimatePresence mode="wait">
+                <AnimatePresence>
                     {messages.length === 0 ? (
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 16 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="max-w-2xl w-full mx-auto px-6 pt-16 sm:pt-24 pb-12 text-center"
+                            className="max-w-2xl mx-auto px-6 pt-24 text-center"
                         >
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium mb-6">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs mb-6">
                                 <Sparkles size={14} />
-                                v1.0 Live Local Intelligence
+                                Local Intelligence
                             </div>
 
-                            <h1 className="text-[clamp(2.5rem,6vw,3rem)] md:text-5xl font-bold tracking-tight leading-tight mb-6">
-                                <span className="bg-gradient-to-b from-white to-white/40 bg-clip-text text-transparent inline-block px-1">
-                                    ContextEngine
-                                </span>
+                            <h1 className="text-4xl font-semibold tracking-tight mb-4">
+                                ContextEngine
                             </h1>
 
-                            <p className="text-lg text-gray-400 max-w-md mx-auto leading-relaxed">
+                            <p className="text-gray-400 max-w-md mx-auto">
                                 Intelligence built on your data. Powered locally.
                             </p>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-12">
-                                {[
-                                    "Analyze my resume for key skills",
-                                    "Summarize this technical PDF"
-                                ].map((hint, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => setInput(hint)}
-                                        className="p-4 bg-[#161617] hover:bg-[#1f1f21] transition-all rounded-2xl border border-white/5 text-sm text-gray-400 text-left group"
-                                    >
-                                        <span className="group-hover:text-white transition-colors">{hint}</span>
-                                    </button>
-                                ))}
-                            </div>
                         </motion.div>
                     ) : (
-                        <div className="max-w-3xl w-full mx-auto px-4 py-8 space-y-8">
-                            {messages.map((m, i) => (
+                        <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+                            {messages.map((m) => (
                                 <motion.div
-                                    key={i}
-                                    initial={{ opacity: 0, y: 10 }}
+                                    key={m.id}
+                                    initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.3 }}
+                                    transition={{ duration: 0.2 }}
                                 >
-                                    <MessageBubble {...m} />
+                                    {m.role === "assistant" &&
+                                    loading &&
+                                    !m.content ? (
+                                        <TypingIndicator />
+                                    ) : (
+                                        <MessageBubble {...m} />
+                                    )}
                                 </motion.div>
                             ))}
                             <div ref={bottomRef} />
@@ -166,99 +216,110 @@ export default function ChatWindow() {
                 </AnimatePresence>
             </div>
 
-            {/* Sticky Footer Section */}
-            <div className="relative border-t border-white/5 bg-[#0a0a0a]/80 backdrop-blur-xl px-4 py-6">
-                <div className="max-w-3xl w-full mx-auto space-y-4">
+            {/* Footer */}
+            <div className="border-t border-white/5 bg-[#0b0b0c]/80 backdrop-blur-lg px-4 py-6">
+                <div className="max-w-3xl mx-auto space-y-4">
 
-                    {/* Mode & Status Row */}
-                    <div className="flex flex-wrap items-center gap-4 mb-4">
+                    {/* Mode Toggle */}
+                    <div className="flex items-center gap-4">
 
-                        <div className="relative flex bg-[#161617] p-1 rounded-2xl border border-white/5 isolate">
+                        <div className="relative flex bg-[#161617] p-1 rounded-xl border border-white/10">
                             <motion.div
-                                className="absolute inset-y-1 left-1 bg-white/10 rounded-xl"
-                                initial={false}
-                                animate={{
-                                    x: mode === "rag" ? 0 : "80%",
-                                    width: mode === "rag" ? "80px" : "97px"
+                                layout
+                                transition={{
+                                    type: "spring",
+                                    stiffness: 400,
+                                    damping: 35,
                                 }}
-                                transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                                className={`absolute top-1 bottom-1 rounded-lg bg-white/10 ${
+                                    mode === "rag"
+                                        ? "left-1 w-[80px]"
+                                        : "left-[82px] w-[95px]"
+                                }`}
                             />
 
                             <button
                                 onClick={() => setMode("rag")}
-                                className={`relative z-10 w-[80px] py-1.5 text-[11px] font-bold tracking-wide ${mode === "rag" ? "text-white" : "text-gray-500"
-                                    }`}
+                                className={`relative z-10 w-[80px] py-1.5 text-xs font-medium ${
+                                    mode === "rag"
+                                        ? "text-white"
+                                        : "text-gray-500"
+                                }`}
                             >
-                                <div className="flex items-center justify-center gap-1.5 uppercase">
-                                    <Sparkles size={12} /> RAG
-                                </div>
+                                <Sparkles size={12} className="inline mr-1" />
+                                RAG
                             </button>
 
                             <button
                                 onClick={() => setMode("ingest")}
-                                className={`relative z-10 w-[95px] py-1.5 text-[11px] font-bold tracking-wide ${mode === "ingest" ? "text-white" : "text-gray-500"
-                                    }`}
+                                className={`relative z-10 w-[95px] py-1.5 text-xs font-medium ${
+                                    mode === "ingest"
+                                        ? "text-white"
+                                        : "text-gray-500"
+                                }`}
                             >
-                                <div className="flex items-center justify-center gap-1.5 uppercase">
-                                    <Database size={12} /> Ingest
-                                </div>
+                                <Database size={12} className="inline mr-1" />
+                                Ingest
                             </button>
                         </div>
 
-                        <AnimatePresence>
-                            {status && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/5 border border-blue-500/10 text-[11px] font-mono text-blue-400"
-                                >
-                                    <Loader2 size={12} className="animate-spin" />
-                                    {status}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                        {status && (
+                            <div className="text-xs text-gray-400 font-mono">
+                                {status}
+                            </div>
+                        )}
                     </div>
 
                     {/* Input */}
-                    <div className="flex items-center gap-2 bg-[#161617] rounded-[24px] p-2 pl-4 border border-white/10 shadow-2xl">
-
-                        <label className="cursor-pointer p-2.5 hover:bg-white/5 rounded-full transition">
-                            <Paperclip size={20} className="text-gray-400" />
-                            <input type="file" className="hidden" multiple onChange={handleFileUpload} />
+                    <motion.div
+                        whileFocus={{ scale: 1.01 }}
+                        className="flex items-center gap-2 bg-[#161617] rounded-2xl p-2 pl-4 border border-white/10"
+                    >
+                        <label className="cursor-pointer p-2 rounded-full hover:bg-white/5 transition">
+                            <Paperclip size={18} className="text-gray-400" />
+                            <input
+                                type="file"
+                                className="hidden"
+                                multiple
+                                onChange={handleFileUpload}
+                            />
                         </label>
 
                         <input
-                            className="flex-1 bg-transparent outline-none py-2 text-[15px] text-[#efeff1] placeholder-gray-500"
-                            placeholder={mode === "rag" ? "Ask your knowledge base..." : "Enter text to ingest..."}
+                            className="flex-1 bg-transparent outline-none py-2 text-sm text-white placeholder-gray-500"
+                            placeholder={
+                                mode === "rag"
+                                    ? "Ask your knowledge base..."
+                                    : "Enter text to ingest..."
+                            }
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSend();
+                                }
+                            }}
                             disabled={loading}
                         />
 
                         <button
                             onClick={handleSend}
                             disabled={!input.trim() || loading}
-                            className={`p-2.5 rounded-full ${input.trim() && !loading
-                                ? "bg-white text-black"
-                                : "bg-white/5 text-gray-600 opacity-50"
-                                }`}
+                            className={`p-2 rounded-full transition ${
+                                input.trim() && !loading
+                                    ? "bg-white text-black"
+                                    : "bg-white/5 text-gray-500"
+                            }`}
                         >
-                            {loading ? (
-                                <Loader2 size={18} className="animate-spin" />
-                            ) : (
-                                <SendHorizontal size={18} />
-                            )}
+                            <SendHorizontal size={16} />
                         </button>
-                    </div>
+                    </motion.div>
 
-                    {/* Footer Branding */}
-                    <div className="flex items-center justify-center gap-2 mt-3 text-[11px] text-[#8e918f]">
-                        <ShieldCheck size={12} className="text-green-500" />
-                        <span>Running locally • Ollama LLM • Chroma Vector DB</span>
+                    <div className="flex justify-center text-[11px] text-gray-500 mt-2">
+                        <ShieldCheck size={12} className="mr-1 text-green-500" />
+                        Running locally • Ollama • Chroma
                     </div>
-
                 </div>
             </div>
         </div>
