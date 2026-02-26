@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧠 ContextEngine
 
-## Getting Started
+**ContextEngine** is a high-performance semantic retrieval backend built for modern AI applications. 
 
-First, run the development server:
+It enables efficient storage, indexing, and retrieval of vector embeddings using **ChromaDB**, serving as the foundational layer for **Retrieval-Augmented Generation (RAG)** systems. ContextEngine bridges the gap between raw data and Large Language Models by providing them with a scalable, persistent memory.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Vision
+Large Language Models are powerful—but without memory, they lack context. ContextEngine solves this by:
+* **Converting** raw data into high-dimensional embeddings.
+* **Storing** vectors efficiently for rapid access.
+* **Retrieving** relevant context with ultra-low latency.
+* **Powering** downstream AI workflows like chat systems and analysis engines.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🧠 Core Features
+* **Vector Storage:** Seamless integration with ChromaDB.
+* **Embedding Pipeline:** Modular ingestion for text-to-vector transformation.
+* **Semantic Search:** Highly accurate similarity search.
+* **Collection Management:** Easy organization of multiple data namespaces.
+* **Persistent Storage:** Production-ready infrastructure that retains memory.
+* **API Layer:** Extensible REST API for quick integration.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🏗 Architecture Overview
+ContextEngine acts as the intelligent memory layer between your data and your AI:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1.  **Data Source** $\rightarrow$ Raw information input.
+2.  **Text Chunking** $\rightarrow$ Breaking data into digestible segments.
+3.  **Embedding Model** $\rightarrow$ Vectorizing text (OpenAI / HuggingFace).
+4.  **Chroma Vector Store** $\rightarrow$ Indexing and persistent storage.
+5.  **Similarity Search** $\rightarrow$ Querying for the most relevant context.
+6.  **LLM / AI Application** $\rightarrow$ Generating grounded, context-aware responses.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 📦 Tech Stack
+* **Language:** Python
+* **Vector Database:** ChromaDB
+* **Models:** OpenAI / HuggingFace / Local Models
+* **API:** FastAPI (or similar)
+* **Deployment:** Docker (Optional)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
