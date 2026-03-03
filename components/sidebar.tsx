@@ -11,9 +11,12 @@ import {
   RefreshCw,
   Loader2,
   X,
+  LogOutIcon,
 } from "lucide-react";
 import api from "@/lib/api";
 import clsx from "clsx";
+import { useRouter } from "next/navigation";
+
 
 type Document = { name: string };
 
@@ -43,6 +46,18 @@ export default function Sidebar({
     "nomic-embed-text:latest"
   );
   const [chromaStatus, setChromaStatus] = useState<"active" | "offline">("offline");
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout"); // clears refresh cookie on backend
+    } catch {
+      console.error("Logout failed");
+    }
+
+    localStorage.removeItem("access_token"); // remove access token
+    router.replace("/"); // redirect to login page
+  };
 
   useEffect(() => {
     const checkHealth = async () => {
@@ -265,6 +280,21 @@ export default function Sidebar({
               {!isCollapsed && <span>Settings</span>}
             </button>
           </div>
+          <button
+            onClick={handleLogout}
+            className={clsx(
+              "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all duration-200 group",
+              isCollapsed ? "justify-center" : "px-4"
+            )}
+          >
+            <LogOutIcon
+              size={18}
+              className="opacity-80 group-hover:opacity-100"
+            />
+            {!isCollapsed && (
+              <span className="whitespace-nowrap">Logout</span>
+            )}
+          </button>
         </div>
       </aside>
 
