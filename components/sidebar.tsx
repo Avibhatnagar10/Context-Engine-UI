@@ -18,6 +18,7 @@ import clsx from "clsx";
 import { useRouter } from "next/navigation";
 
 
+
 type Document = { name: string };
 
 interface SidebarProps {
@@ -40,6 +41,9 @@ export default function Sidebar({
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [showPermissionPopup, setShowPermissionPopup] = useState(false);
+
 
   const [llmModel, setLlmModel] = useState("gemma3:4b");
   const [embeddingModel, setEmbeddingModel] = useState(
@@ -57,6 +61,18 @@ export default function Sidebar({
     localStorage.removeItem("access_token"); // remove access token
     router.replace("/"); // redirect to login page
   };
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await api.get("/auth/me");
+        setUserRole(res.data.role);
+      } catch {
+        setUserRole(null);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const checkHealth = async () => {
@@ -65,6 +81,23 @@ export default function Sidebar({
         setChromaStatus(res.data.status);
       } catch {
         setChromaStatus("offline");
+      }
+    };
+    const deleteDocument = async (name: string) => {
+
+      if (userRole !== "admin") {
+        setShowPermissionPopup(true);
+        return;
+      }
+
+      try {
+        await api.delete(`/documents/${name}`);
+
+        setDocuments((prev) =>
+          prev.filter((doc) => doc.name !== name)
+        );
+      } catch {
+        console.error("Failed to delete document");
       }
     };
 
@@ -183,6 +216,33 @@ export default function Sidebar({
                     <RefreshCw size={14} />
                   )}
                 </button>
+              </div>
+            )}
+            {/* Admin notice */}
+            {/* Admin Notice (only for non-admin users) */}
+            {userRole && userRole !== "admin" && !isCollapsed && (
+              <div className="mx-2 mb-4 p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 backdrop-blur-sm flex items-start gap-3 relative overflow-hidden">
+
+                {/* subtle glow */}
+                <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent opacity-40 pointer-events-none" />
+
+                {/* icon */}
+                <div className="mt-[2px]">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-500/10 ring-1 ring-amber-500/20">
+                    ⚠️
+                  </span>
+                </div>
+
+                {/* text */}
+                <div className="text-[12px] leading-relaxed">
+                  <p className="text-amber-300 font-semibold tracking-wide">
+                    Admin Restriction
+                  </p>
+
+                  <p className="text-gray-400">
+                    Document deletion is restricted to administrator accounts.
+                  </p>
+                </div>
               </div>
             )}
 
