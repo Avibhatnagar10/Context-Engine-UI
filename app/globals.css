@@ -232,3 +232,29 @@ textarea {
     @apply bg-background text-foreground;
   }
 }
+/* Modern dark scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 20px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* show only when hovering or scrolling container */
+:hover::-webkit-scrollbar-thumb {
+  opacity: 1;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #373636 transparent;
+}
