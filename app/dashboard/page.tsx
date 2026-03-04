@@ -8,6 +8,7 @@ import ChatWindow from "../../components/ChatWindow";
 import { Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
+import ClassicLoader from "@/components/loader";
 
 export default function DashboardPage() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -29,13 +30,17 @@ export default function DashboardPage() {
     verifyUser();
   }, [router]);
 
+  useEffect(() => {
+    setTimeout(() => {
+      setLoading(false);
+    }, 2000); // simulate loading
+  }, []);
+
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-black text-white">
-        Loading dashboard...
-      </div>
-    );
+    return <ClassicLoader />;
   }
+
+  
 
   return (
     <div className="flex h-[100dvh] overflow-hidden bg-[#0e0e0e]">

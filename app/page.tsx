@@ -26,6 +26,8 @@ export default function HomePage() {
     checkAuth();
   }, [router]);
 
+  
+
   const handleGoogleLogin = () => {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
     
