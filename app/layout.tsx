@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import CookieConsent from "@/components/cookies-banner";
 
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
@@ -23,7 +22,7 @@ export default function RootLayout({
       >
         <div className="relative h-full w-full overflow-hidden">
           {children}
-          <CookieConsent privacyHref="/privacy" />
+          
         </div>
       </body>
     </html>

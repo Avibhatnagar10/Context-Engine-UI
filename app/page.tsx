@@ -7,7 +7,7 @@ import { FcGoogle } from "react-icons/fc";
 import { ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
-import { hasCookieConsent } from "@/lib/cookies";
+import CookieConsent from "@/components/cookies-banner";
 
 export default function HomePage() {
   const [loading, setLoading] = useState(false);
@@ -28,12 +28,7 @@ export default function HomePage() {
 
   const handleGoogleLogin = () => {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-    if (!hasCookieConsent()) {
-      alert(
-        "Cookies are required for Google authentication. Please allow cookies to continue."
-      );
-      return;
-    }
+    
     if (!backendUrl) {
       console.error("NEXT_PUBLIC_BACKEND_URL is not defined");
       return;
@@ -45,7 +40,7 @@ export default function HomePage() {
 
   return (
     <div className="relative flex h-screen w-full overflow-hidden bg-black">
-      
+      <CookieConsent />
       {/* LEFT AUTH PANEL */}
       <motion.div
         initial={{ x: -60, opacity: 0 }}
