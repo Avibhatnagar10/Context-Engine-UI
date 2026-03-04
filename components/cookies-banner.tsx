@@ -12,18 +12,12 @@ const CookieConsent: React.FC<CookieConsentProps> = ({
   privacyHref = "#",
   className = "",
 }) => {
-  const [visible, setVisible] = useState(() => {
-    if (typeof window === "undefined") return false;
-  
-    const isLocalhost =
-      window.location.hostname === "localhost" &&
-      window.location.port === "3000";
-  
-    if (!isLocalhost) return false;
-  
-    const consent = localStorage.getItem("cookie-consent");
-    return !consent;
-  });
+    const [visible, setVisible] = useState(() => {
+        if (typeof window === "undefined") return false;
+      
+        const consent = localStorage.getItem("cookie-consent");
+        return !consent;
+      });
 
   const acceptCookies = () => {
     localStorage.setItem("cookie-consent", "accepted");
