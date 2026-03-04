@@ -50,11 +50,10 @@ export default function Sidebar({
 
   const handleLogout = async () => {
     try {
-      await api.post("/auth/logout"); // clears refresh cookie on backend
-    } catch {
+      await api.post("/auth/logout", {}, { withCredentials: true }); // clears refresh cookie on backend
+    } catch (err) {
       console.error("Logout failed");
     }
-
     localStorage.removeItem("access_token"); // remove access token
     router.replace("/"); // redirect to login page
   };

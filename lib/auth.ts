@@ -1,9 +1,18 @@
-export function getAccessToken() {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("access_token");
+// File: src/lib/auth.ts
+
+import api from "@/lib/api";
+
+export async function isAuthenticated(): Promise<boolean> {
+  try {
+    await api.get("/auth/me", {
+        withCredentials: true,
+      });// any protected route
+    return true;
+  } catch {
+    return false;
   }
-  
-  export function logout() {
-    localStorage.removeItem("access_token");
-    window.location.href = "/";
-  }
+}
+
+export function logout() {
+  window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/logout`;
+}

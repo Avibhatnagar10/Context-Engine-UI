@@ -1,25 +1,51 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ShaderAnimation } from "@/components/ShaderAnimation";
 import { FcGoogle } from "react-icons/fc";
 import { ShieldCheck } from "lucide-react";
-
+import { useRouter } from "next/navigation";
+import api from "@/lib/api";
+import { hasCookieConsent } from "@/lib/cookies";
 
 export default function HomePage() {
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
- 
-  const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:8000/auth/login";
-  };
 
-  
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        await api.get("/auth/me"); // cookie-based check
+        router.replace("/dashboard");
+      } catch {
+        // Not logged in — stay here
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  const handleGoogleLogin = () => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    if (!hasCookieConsent()) {
+      alert(
+        "Cookies are required for Google authentication. Please allow cookies to continue."
+      );
+      return;
+    }
+    if (!backendUrl) {
+      console.error("NEXT_PUBLIC_BACKEND_URL is not defined");
+      return;
+    }
+
+    setLoading(true);
+    window.location.href = `${backendUrl}/auth/login`;
+  };
 
   return (
     <div className="relative flex h-screen w-full overflow-hidden bg-black">
-
+      
       {/* LEFT AUTH PANEL */}
       <motion.div
         initial={{ x: -60, opacity: 0 }}
@@ -53,16 +79,18 @@ export default function HomePage() {
 
         <div className="space-y-5">
           <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: loading ? 1 : 1.03 }}
+            whileTap={{ scale: loading ? 1 : 0.97 }}
+            disabled={loading}
             onClick={handleGoogleLogin}
             className="group relative w-full flex items-center justify-center gap-3 py-3.5 rounded-xl
               bg-white text-black font-medium
               shadow-lg hover:shadow-xl
-              transition-all duration-300"
+              transition-all duration-300
+              disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <FcGoogle size={20} />
-            Continue with Google
+            {loading ? "Redirecting..." : "Continue with Google"}
             <span className="absolute inset-0 rounded-xl ring-1 ring-black/10 group-hover:ring-black/20 transition" />
           </motion.button>
         </div>
@@ -87,8 +115,8 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{
               duration: 1.2,
-              delay: 0.8, // This is your transition delay
-              ease: [0.22, 1, 0.36, 1], // Expressive "Out" easing
+              delay: 0.8,
+              ease: [0.22, 1, 0.36, 1],
             }}
             className="flex flex-col items-center"
           >
@@ -96,7 +124,6 @@ export default function HomePage() {
               Context Engine
             </span>
 
-            {/* Subtle underline or accent to anchor the text */}
             <motion.div
               initial={{ width: 0, opacity: 0 }}
               animate={{ width: "60%", opacity: 1 }}

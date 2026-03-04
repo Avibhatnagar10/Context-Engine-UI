@@ -1,33 +1,46 @@
-//app/dashboard/page.tsx
-//  It contains the sidebar and the chat window.
+// File: src/app/dashboard/page.tsx
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../../components/sidebar";
 import ChatWindow from "../../components/ChatWindow";
 import { Menu } from "lucide-react";
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken } from "@/lib/auth";
+import api from "@/lib/api";
 
-export default function Layout() {
+export default function DashboardPage() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-useEffect(() => {
-  const token = getAccessToken();
+  useEffect(() => {
+    const verifyUser = async () => {
+      try {
+        // Call any protected endpoint
+        await api.get("/auth/me");
+        setLoading(false);
+      } catch {
+        router.replace("/");
+      }
+    };
 
-  if (!token) {
-    router.push("/");
+    verifyUser();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-black text-white">
+        Loading dashboard...
+      </div>
+    );
   }
-}, [router]);
 
   return (
     <div className="flex h-[100dvh] overflow-hidden bg-[#0e0e0e]">
       
-      {/* Desktop Sidebar (takes space) */}
+      {/* Desktop Sidebar */}
       <div
         className={`hidden lg:flex ${
           isCollapsed ? "w-[80px]" : "w-[280px]"
@@ -41,7 +54,7 @@ useEffect(() => {
         />
       </div>
 
-      {/* Mobile Sidebar (overlay only) */}
+      {/* Mobile Sidebar */}
       <div className="lg:hidden">
         <Sidebar
           isCollapsed={false}
